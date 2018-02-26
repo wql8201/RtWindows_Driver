@@ -67,10 +67,10 @@ BOOLEAN RtSetProcessAffinity(PEPROCESS eProcess, ULONG  cpuMask)
 	if (*(PULONG)pAffinityProcess == 0)
 		return TRUE;
 	*(PULONG)pAffinityProcess = cpuMask;
-
 	threadListHead = GET_PTR(PLIST_ENTRY, eProcess, KPROCESS_THREADLISTHEAD);
 	threadList = threadListHead->Flink;
-
+	if (threadList == NULL)
+		return TRUE;
 	//±éÀúÏß³Ì
 	do
 	{
@@ -78,6 +78,8 @@ BOOLEAN RtSetProcessAffinity(PEPROCESS eProcess, ULONG  cpuMask)
 		curThread = GET_PTR(PETHREAD, threadList, - KTHREAD_LISTENTRY_OFFSET);
 		RtSetThreadAffinity(curThread, cpuMask);
 		threadList = threadList->Flink;
+		if (threadList->Blink == threadList->Flink)
+			return TRUE;
 	} while (threadList != threadListHead);
 
 	return TRUE;
